@@ -12,13 +12,17 @@ export default function Home() {
   const [joinCodeInput, setJoinCodeInput] = useState("");
   const [joinError, setJoinError] = useState("");
 
-  const { room, createRoom, joinRoom } = useGameRoom(playerName || "O'yinchi");
+const { room, createRoom, joinRoom, broadcastGameUpdate, myId } = useGameRoom(playerName || "O'yinchi");
 
   function handleCreateRoom() {
     if (!playerName.trim()) return;
     createRoom();
     setMode("in-room");
   }
+  function handleStartGame() {
+  broadcastGameUpdate("playing", 1);
+  setMode("game"); // yoki kerakli mode
+}
 
   function handleJoinRoom() {
     const code = joinCodeInput.trim().toUpperCase();
@@ -45,41 +49,57 @@ export default function Home() {
   }
 
   if (mode === "in-room") {
-    return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-sm w-full bg-white border border-gray-200 rounded-xl p-6">
-          {room ? (
-            <>
-              <p className="text-sm text-gray-500 mb-1 text-center">Xona kodi</p>
-              <p className="text-3xl font-semibold tracking-widest mb-4 text-center">{room.code}</p>
-              <p className="text-xs text-gray-500 mb-4 text-center">
-                Bu kodni do&apos;stingizga yuboring — u shu kodni &quot;Xonaga qo&apos;shilish&quot; orqali kiritadi.
-              </p>
-              <div className="border-t border-gray-100 pt-4 mb-4">
-                <p className="text-xs text-gray-500 mb-2">Xonadagi o&apos;yinchilar ({room.players.length})</p>
-                <div className="flex flex-col gap-2">
-                  {room.players.map((p) => (
-                    <div key={p.id} className="flex justify-between text-sm bg-gray-50 rounded-md px-3 py-2">
-                      <span>{p.name} {p.is_host && <span className="text-xs text-gray-400">(xona egasi)</span>}</span>
-                      <span className="text-gray-500">{p.score} ball</span>
-                    </div>
-                  ))}
-                </div>
+  const isHost = room?.players.find(p => p.id === myId)?.is_host ?? false;
+
+  return (
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-sm w-full bg-white border border-gray-200 rounded-xl p-6">
+        {room ? (
+          <>
+            <p className="text-sm text-gray-500 mb-1 text-center">Xona kodi</p>
+            <p className="text-3xl font-semibold tracking-widest mb-4 text-center">{room.code}</p>
+            <p className="text-xs text-gray-500 mb-4 text-center">
+              Bu kodni do&apos;stingizga yuboring.
+            </p>
+            <div className="border-t border-gray-100 pt-4 mb-4">
+              <p className="text-xs text-gray-500 mb-2">O&apos;yinchilar ({room.players.length})</p>
+              <div className="flex flex-col gap-2">
+                {room.players.map((p) => (
+                  <div key={p.id} className="flex justify-between text-sm bg-gray-50 rounded-md px-3 py-2">
+                    <span>{p.name} {p.is_host && <span className="text-xs text-gray-400">(xona egasi)</span>}</span>
+                    <span className="text-gray-500">{p.score} ball</span>
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* ✅ YO'Q BO'LGAN TUGMA — faqat xona egasi ko'radi */}
+            {isHost && (
+              <button
+                onClick={handleStartGame}
+                disabled={room.players.length < 2}
+                className="w-full px-4 py-2 rounded-md bg-black text-white text-sm mb-3 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {room.players.length < 2 ? "Kamida 2 kishi kerak..." : "O'yinni boshlash →"}
+              </button>
+            )}
+
+            {!isHost && room.players.length < 2 && (
               <p className="text-xs text-gray-400 text-center mb-3">
-                Kamida 2 kishi bo&apos;lganda o&apos;yin boshlanishi mumkin
+                Xona egasi o&apos;yinni boshlaguncha kuting...
               </p>
-            </>
-          ) : (
-            <p className="text-sm text-gray-500 text-center py-6">Xonaga ulanmoqda...</p>
-          )}
-          <button onClick={() => setMode("menu")} className="w-full text-sm text-gray-500 hover:text-gray-700">
-            ← Xonadan chiqish
-          </button>
-        </div>
-      </main>
-    );
-  }
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-gray-500 text-center py-6">Xonaga ulanmoqda...</p>
+        )}
+        <button onClick={() => setMode("menu")} className="w-full text-sm text-gray-500 hover:text-gray-700">
+          ← Xonadan chiqish
+        </button>
+      </div>
+    </main>
+  );
+}
 
   if (mode === "create-room") {
     return (
