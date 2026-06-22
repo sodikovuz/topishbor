@@ -61,7 +61,7 @@ export function useGameRoom(playerName: string) {
           id,
           name: metas[0]?.name || "O'yinchi",
           score: metas[0]?.score || 0,
-          is_host: id === myIdRef.current ? asHost : false,
+          is_host: asHost && id === myIdRef.current,
         }));
         setRoom((prev) => ({
           code,
