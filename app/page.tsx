@@ -4,7 +4,7 @@ import { useState } from "react";
 import PriceGuessGame from "@/components/PriceGuessGame";
 import { useGameRoom } from "@/lib/useGameRoom";
 
-type Mode = "menu" | "bot" | "create-room" | "join-room" | "in-room";
+type Mode = "menu" | "bot" | "create-room" | "join-room" | "in-room" | "game";
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("menu");
@@ -19,9 +19,9 @@ const { room, createRoom, joinRoom, broadcastGameUpdate, myId } = useGameRoom(pl
     createRoom();
     setMode("in-room");
   }
-  function handleStartGame() {
+function handleStartGame() {
   broadcastGameUpdate("playing", 1);
-  setMode("game"); // yoki kerakli mode
+  setMode("bot"); // PriceGuessGame multiplayer rejimida ochiladi
 }
 
   function handleJoinRoom() {
